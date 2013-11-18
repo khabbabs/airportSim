@@ -1,0 +1,299 @@
+package edu.unm.cs.venture;
+
+import java.awt.Dimension;
+import java.awt.Point;
+import java.util.LinkedList;
+import java.util.List;
+
+/**
+ * Very similar in function to a switchingHub, but has 
+ * unlimited capacity for bags, and scans the bags to 
+ * determine if they are legal (illegal defined as any 
+ * of the following: too big/too heavy/illicit contents/etc.) 
+ * Sends out bags after they have been through the scanner to 
+ * the switching network.
+ * 
+ * 
+ * @author zach@cs.unm.edu
+ * @author rbshaw5@gmail.com
+ * @author khabbabs@unm.edu
+ * @author kzelle@unm.edu
+ */
+
+public class Scanner implements Node{
+
+	private static int UID = 0;
+	private boolean curState;
+	private Dimension coordinates;
+	private Dimension position;
+	private String id;
+	private int capacity;
+	private LinkedList<Bag> curBags;
+	private LinkedList<Edge> inputEdges;
+	private LinkedList<Edge> outputEdges;
+	
+	
+	
+	
+	
+	/**
+	 * Constructor for the Scanner object
+	 * @param coordinates Dimension for the scanner for algorithm purposes
+	 * @param position Dimension for the scanner for graphics purposes
+	 */
+	public Scanner(Dimension coordinates, Dimension position){
+		curState = true;
+		this.coordinates = coordinates;
+		this.position = position;
+		this.id = "SCAN"+getUID();
+		curBags = new LinkedList<Bag>();
+		inputEdges = new LinkedList<Edge>();
+		outputEdges = new LinkedList<Edge>();
+		capacity = 20;
+	}
+	
+	/** Generates a unique ID for a Scanner. */
+	public static int getUID() {
+		return UID++;
+	}
+	
+
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void onTick(int phase) {
+		//Phase 1: Accept a bag from an incoming edge
+		if(phase == 1){
+			if(curBags.size() <= capacity){
+				acceptBag();
+			}
+		}
+		//Phase 2: Spit the bag to an outgoing edge
+		else{
+			if(!curBags.isEmpty()){
+				while(!curBags.isEmpty() && !curBags.peek().onScan()){
+					Overlord.getInstance().disposeBag(Integer.toString(curBags.peek().getID()));
+					HoldingArea.getInstance().holdBag(curBags.poll());
+				}
+				
+				if(!curBags.isEmpty()) giveBag();
+				
+			}
+		}
+		
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public List<Bag> getBags() {
+		return this.curBags;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public List<Edge> getInputEdges() {
+		return this.inputEdges;
+	}
+
+	@Override
+	public List<Edge> getOutputEdges() {
+		return this.outputEdges;
+	}
+
+	/**
+	 * Adds the currenly held bag to the optimal edge
+	 */
+	@Override
+	public void giveBag() {
+		Edge edge = whichEdge();
+		if(edge != null){
+			curBags.peek().addVisited(edge);
+			edge.addBag(curBags.poll());
+		}
+		
+	} 
+
+	@Override
+	public Dimension getCoords() {
+		return this.coordinates;
+	}
+
+	@Override
+	public void enable() {
+		this.curState = true;
+		for(Edge e : outputEdges){
+			e.enable();
+		}
+		
+		for(Edge e : inputEdges){
+			e.enable();
+		}
+		
+		
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void disable() {
+		this.curState = false;
+		while(!curBags.isEmpty()){
+			Overlord.getInstance().disposeBag(Integer.toString(curBags.peek().getID()));
+			HoldingArea.getInstance().holdBag(curBags.poll());
+		}
+		
+		for(Edge e : inputEdges){
+			e.disable();
+			
+		}
+		
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Dimension getPos() {
+		return this.position;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void addInputEdge(Edge edge) {
+		inputEdges.add(edge);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void addOutputEdge(Edge edge) {
+		outputEdges.add(edge);
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public String getID() {
+		return id;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isEnabled() {
+		return curState;
+	}
+	
+	/**
+	 * Checks all incoming edges and receives their first bag in line
+	 */
+	private void acceptBag(){
+		for(Edge e:inputEdges){
+			if(e.getBags().peek() == null || curBags.size() >= capacity) continue;
+			curBags.add(e.giveBag());
+			curBags.peekLast().addVisited(this);
+		}
+	}
+	
+	/**
+	 * Determines which edge to send the current bag to
+	 * @return Edge to which the current bag is sent to
+	 */
+	private Edge whichEdge(){
+		
+		//convert the destination coordinates to a Point for distance formula reasons
+		Dimension coords = curBags.peek().getEndNode().getCoords();
+		Point destPoint = new Point();
+		destPoint.x = (int) coords.getWidth();
+		destPoint.y = (int) coords.getHeight();
+		
+		//create arays of Points and doubles to keep track of distance information
+		Point[] possibleNodes = new Point[outputEdges.size()];
+		for(int i=0; i<outputEdges.size(); i++){
+			possibleNodes[i] = new Point();
+		}
+		double[] distances = new double[outputEdges.size()];
+		
+		//counter keeps track of which value in the array the arrays are at
+		int counter = 0;
+		for(Edge e:outputEdges){
+			Dimension possibleCoords = e.getOutputNode().getCoords();
+			possibleNodes[counter].x = possibleCoords.width;
+			possibleNodes[counter].y = possibleCoords.height;
+			
+			distances[counter] = destPoint.distance(possibleNodes[counter]);
+			counter++;
+		}
+		
+		//initially set variables to unmatchable values so we know if they've been changed
+		int correctIndex = Integer.MAX_VALUE;
+		double shortestDistance = Double.MAX_VALUE;
+		
+		//figure out the shortest distance
+		for(int i=0; i<outputEdges.size(); i++){
+			//Does not allow edge if it is full
+			if(outputEdges.get(i).getBags().peekLast() != null || !outputEdges.get(i).getState()){
+				continue;
+			}
+			if(distances[i] < shortestDistance){
+				if(outputEdges.get(i).getBags().peekLast() == null){
+					correctIndex = i;
+					shortestDistance = distances[i];
+				}				
+			}
+		}
+		//return the edge which leads to the node with the shortest diastance
+		//to the destination node
+		if(correctIndex < Integer.MAX_VALUE){
+			return outputEdges.get(correctIndex);
+		}
+		else return null;
+		
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void disposeBag(Bag bag) {
+		HoldingArea.getInstance().holdBag(curBags.remove(curBags.indexOf(bag)));
+		
+	}
+	
+	
+	@Override
+	public String toString() {
+		return id;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void shouldDisable(){
+		boolean shouldDisable = true;
+		//If there are any valid edges, don't disable
+		for(Edge e: outputEdges){
+			if(e.getState()){
+				shouldDisable = false;
+			}
+		}
+		
+		//if there are no valid edges, self-disable
+		if(shouldDisable){
+			this.disable();
+		}
+		
+	}
+
+}

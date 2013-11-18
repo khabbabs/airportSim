@@ -1,0 +1,113 @@
+package edu.unm.cs.venture;
+
+import java.awt.Dimension;
+import java.util.LinkedList;
+import java.util.List;
+
+import javax.print.attribute.standard.OutputDeviceAssigned;
+
+public class Gate implements Node {
+
+	private static int UID = 0;
+	private LinkedList<Edge> inputEdges;
+	private Dimension position;
+	private String id;
+
+	public Gate(Dimension position, int concourse){
+		this.id = "Gate"+((concourse*5)+getUID());
+		this.position = position;
+		inputEdges = new LinkedList<Edge>();
+
+	}
+	/** Generates a unique ID for a Gate. */
+	public static int getUID() {
+		return (UID++)%25;
+	}
+	
+
+	@Override
+	public void onTick(int phase) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public List<Bag> getBags() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Edge> getInputEdges() {
+
+		return this.inputEdges;
+	}
+
+	@Override
+	public List<Edge> getOutputEdges() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void giveBag() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public Dimension getCoords() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Dimension getPos() {
+		
+		return this.position;
+	}
+
+	@Override
+	public void enable() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void disable() {
+		// TODO Auto-generated method stub
+
+	}
+<<<<<<< .mine
+	@Override
+	public void addInputEdge(Edge edge) {
+		this.inputEdges.add(edge);
+		
+	}
+	@Override
+	public void addOutputEdge(Edge edge) {
+		// invalid operation
+		throw new UnsupportedOperationException("Gates do not have output edges.");
+		
+	}
+
+
+
+
+=======
+	@Override
+	public void addInputEdge(Edge edge) {
+		inputEdges.add(edge);
+	}
+	@Override
+	public void addOutputEdge(Edge edge) {
+		// Invalid operation
+		throw new UnsupportedOperationException("Gates have no output edges");
+		
+	}
+	@Override
+	public String getID() {
+		return id;
+	}
+>>>>>>> .r328
+}

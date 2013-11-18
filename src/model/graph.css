@@ -1,0 +1,115 @@
+node {
+	shape: box;
+	text-mode: hidden;
+	text-background-mode: rounded-box;
+	text-background-color: pink;
+}
+
+node.CollectionPoint {
+	shape: circle;
+	stroke-mode: plain;
+	fill-mode: none;
+}
+
+node.Scanner {
+	size: 45px, 30px;
+}
+
+node.SwitchingHub {
+	size: 20px, 20px;
+}
+
+node.Concourse {
+	shape: diamond;
+	size: 30px, 30px;
+}
+
+node.GateGroup {
+	shape: diamond;
+	size: 20px, 20px;
+}
+
+node.Gate {
+	shape: circle;
+}
+
+node.InboundGate {
+	shape: circle;
+}
+
+node.Collection {
+	shape: diamond;
+	size: 20px, 20px;
+}
+
+node.BagClaim {
+	shape: circle;
+}
+
+edge {
+	text-mode: hidden;
+	text-alignment: along;
+	text-background-mode: rounded-box;
+	text-background-color: gold;
+
+	shadow-color: red;
+	shadow-offset: 0px;
+	shadow-width: 5px;
+}
+
+edge.invisible {
+	visibility-mode: hidden;
+}
+
+edge.noArrow {
+	arrow-shape: none;
+}
+
+
+sprite {
+	size: 6px, 6px;
+	text-mode: hidden;
+	text-background-mode: plain;
+	text-background-color: orange;
+	stroke-mode: plain;
+}
+
+sprite.red {
+	fill-color: red;
+}
+
+sprite.blue {
+	fill-color: blue;
+}
+
+sprite.yellow {
+	fill-color: yellow;
+}
+
+sprite.green {
+	fill-color: green;
+}
+
+sprite.purple {
+	fill-color: purple;
+}
+
+sprite.gray1 {
+	fill-color: #333;
+}
+
+sprite.gray2 {
+	fill-color: #666;
+}
+
+sprite.gray3 {
+	fill-color: #999;
+}
+
+sprite.gray4 {
+	fill-color: #CCC;
+}
+
+sprite.gray5 {
+	fill-color: #FFF;
+}
